@@ -3,760 +3,1075 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>獎金計算器 — 完整版</title>
+  <title>獎金計算器</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --left-bg:#fbfdff;
-      --left-text:#0b2540;
-      --muted:#6b7280;
-      --accent:#2563eb;
-      --right-card:#071028;
-      --right-text:#e6eef8;
-      --glass-border: rgba(2,6,23,0.06);
-      --radius:12px;
-      --danger:#b91c1c;
-      --input-active-border: #1e40af;
+    /* ══════════════════════════════════════
+       Design Token — Rosegold × Lavender
+    ══════════════════════════════════════ */
+    :root {
+      /* 薰衣草紫（淡化） */
+      --lv-100: #f3eeff;
+      --lv-200: #e2d4f8;
+      --lv-300: #c8b2f0;
+      --lv-400: #ac8de4;
+      --lv-500: #8f6bd0;
+      --lv-600: #6e4eac;
+      --lv-700: #4e3280;
+
+      /* 玫瑰金主色系 */
+      --rg-50:  #fff8f5;
+      --rg-100: #fdeee8;
+      --rg-200: #f8d8c8;
+      --rg-300: #f0bca4;
+      --rg-400: #e49c80;
+      --rg-500: #d4795a;
+      --rg-600: #b85c40;
+      --rg-700: #8c4030;
+
+      /* 淡金色 */
+      --gold-100: #fdf5e0;
+      --gold-300: #f0d898;
+      --gold-500: #c8a040;
+
+      /* 文字 */
+      --text-h:    #2c1a10;
+      --text-body: #5a3a28;
+      --text-mid:  #8c6850;
+      --text-mute: #c0a090;
+
+      /* 系統色 */
+      --danger:  #c04040;
+      --ok:      #5aaa80;
+
+      /* 卡片 */
+      --card-bg: rgba(255,252,250,0.90);
+      --card-bd: rgba(212,121,90,0.14);
+      --inp-bg:  rgba(253,238,232,0.55);
+      --inp-ring:rgba(212,121,90,0.20);
+
+      --r-sm: 8px;
+      --r-md: 14px;
+      --r-lg: 22px;
+
+      --sh-card: 0 8px 40px rgba(140,64,48,0.10), 0 2px 10px rgba(140,64,48,0.06);
+      --sh-btn:  0 4px 18px rgba(180,90,60,0.30);
+      --sh-tile: 0 6px 28px rgba(60,24,10,0.32);
     }
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,#f3f6fb 0%,#eef4fb 60%); color:var(--left-text); font-family:"Noto Sans TC", "Helvetica Neue", Arial, sans-serif;}
-    .wrap{max-width:1100px;margin:28px auto;padding:20px;border-radius:14px;}
-    header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-    .logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#2b6cff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
-    h1{font-size:18px;margin:0;color:var(--left-text)} p{margin:0;color:var(--muted);font-size:13px}
 
-    .grid{display:grid;grid-template-columns:1fr 380px;gap:18px;align-items:start;}
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .card{
-      background:var(--left-bg); color:var(--left-text);
-      border-radius:12px;padding:18px;border:1px solid var(--glass-border);
-      box-shadow: 0 22px 48px rgba(11,26,48,0.12), 0 6px 18px rgba(11,26,48,0.06);
+    html, body {
+      min-height: 100vh;
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 14px;
+      color: var(--text-body);
+      /* 背景：玫瑰金漸層 */
+      background: linear-gradient(145deg,
+        #fce8e0 0%, #fdf0e8 25%,
+        #f8eaf8 55%, #ede8ff 85%, #e8e0ff 100%);
     }
 
-    /* 表單排版 */
+    /* ── 背景裝飾泡泡 ── */
+    .blob {
+      position: fixed; border-radius: 50%;
+      pointer-events: none; z-index: 0; filter: blur(70px);
+    }
+    .blob-1 { width:560px;height:560px;top:-160px;right:-160px;
+               background: rgba(228,156,128,0.18); }
+    .blob-2 { width:400px;height:400px;bottom:-120px;left:-120px;
+               background: rgba(172,141,228,0.16); }
+    .blob-3 { width:300px;height:300px;top:45%;left:35%;
+               background: rgba(240,188,164,0.12); }
+
+    /* ── Wrapper ── */
+    .wrap {
+      position: relative; z-index: 1;
+      max-width: 1120px; margin: 0 auto;
+      padding: 28px 20px 44px;
+    }
+
+    /* ════ HEADER ════ */
+    header {
+      display: flex; align-items: center; gap: 16px;
+      margin-bottom: 26px;
+      animation: slideDown .42s cubic-bezier(.22,.68,0,1.2) both;
+    }
+    .logo {
+      width: 52px; height: 52px; border-radius: 16px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--rg-300), var(--rg-600));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 6px 22px rgba(180,90,60,0.30);
+    }
+    .header-text h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px; color: var(--rg-700); letter-spacing: .02em;
+    }
+    .header-sub {
+      font-size: 11.5px; color: var(--text-mute);
+      margin-top: 4px; line-height: 1.65;
+    }
+
+    /* ════ LAYOUT ════ */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 352px;
+      gap: 20px; align-items: start;
+    }
+
+    /* ════ CARD ════ */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--r-lg);
+      border: 1px solid var(--card-bd);
+      box-shadow: var(--sh-card);
+      backdrop-filter: blur(22px);
+      padding: 24px;
+      animation: slideUp .48s cubic-bezier(.22,.68,0,1.2) both;
+    }
+
+    /* ── Section title ── */
+    .sec-title {
+      font-size: 11px; font-weight: 700; letter-spacing: .10em;
+      text-transform: uppercase; color: var(--rg-500);
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .sec-title::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg, rgba(212,121,90,0.25), transparent);
+    }
+
+    /* ── Form grid ── */
     .form-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-      align-items: start;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 14px; margin-bottom: 14px;
     }
-    .two-col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    .field {
-      padding: 8px 10px;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.6);
-      border: 1px solid rgba(11,26,48,0.03);
-      position: relative;
-      overflow: visible;
-    }
-    .field label {
-      display: block;
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 6px;
-      font-weight: 600;
-    }
-    .label-row {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:8px;
-    }
-    .muted{font-size:12px;color:var(--muted);margin-top:6px}
+    .full { grid-column: 1 / -1; }
 
+    /* ── Field ── */
+    .field { display: flex; flex-direction: column; gap: 5px; }
+
+    label {
+      font-size: 12px; font-weight: 600; color: var(--text-mid);
+      letter-spacing: .02em;
+      display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+    }
+
+    /* 字母 Key 標籤 */
+    .lkey {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0;
+      background: var(--rg-100); color: var(--rg-700);
+      font-size: 10px; font-weight: 800;
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-block; padding: 1px 7px;
+      border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: .04em;
+    }
+    .req { background: rgba(192,64,64,0.10); color: var(--danger); }
+    .opt { background: rgba(143,107,208,0.12); color: var(--lv-600); }
+    .sys { background: rgba(90,170,128,0.13); color: #3a8a60; }
+
+    /* ── Inputs ── */
     input[type="text"], select {
-      background:#fff;border:1px solid rgba(11,26,48,0.06);color:var(--left-text);
-      padding:10px;border-radius:8px;font-size:14px;outline:none;transition:box-shadow .12s, border-color .12s, color .12s;
-      width:100%;box-sizing:border-box;
+      background: var(--inp-bg);
+      border: 1.5px solid rgba(212,121,90,0.18);
+      color: var(--text-h);
+      padding: 9px 12px;
+      border-radius: var(--r-sm);
+      font-size: 14px; font-family: inherit;
+      outline: none; width: 100%;
+      appearance: none; -webkit-appearance: none;
+      transition: border-color .16s, box-shadow .16s, background .16s, transform .12s;
     }
-    input[readonly]{background:transparent;color:#334155}
-    input:focus, select:focus{box-shadow:0 8px 24px rgba(37,99,235,0.08); transform:translateY(-1px)}
-    input.has-value{ box-shadow: 0 10px 30px rgba(37,99,235,0.08); border-color: var(--input-active-border); }
-    input.negative{ color: var(--danger); }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%23d4795a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center;
+      padding-right: 32px; cursor: pointer;
+    }
+    input:focus, select:focus {
+      border-color: var(--rg-400);
+      box-shadow: 0 0 0 3px var(--inp-ring);
+      background: rgba(253,238,232,0.85);
+      transform: translateY(-1px);
+      outline: none;
+    }
+    /* Select 選完後有顏色回饋 */
+    select.selected {
+      border-color: var(--rg-400);
+      background-color: rgba(253,238,232,0.80);
+    }
+    input[readonly] {
+      background: rgba(90,170,128,0.10);
+      color: #3a8a60; cursor: default; font-weight: 600;
+      border-color: rgba(90,170,128,0.20);
+    }
+    input[readonly]:focus { transform: none; box-shadow: none; }
+    input.has-value {
+      border-color: var(--rg-300);
+      background: rgba(253,238,232,0.80);
+    }
+    input.neg-val { color: var(--danger) !important; }
 
-    .badge {display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;margin-left:8px;}
-    .req {background:#ffecec;color:#b91c1c}
-    .opt {background:#eef6ff;color:#0b69ff}
+    /* 必填錯誤 */
+    input.error, select.error {
+      border-color: var(--danger) !important;
+      box-shadow: 0 0 0 3px rgba(192,64,64,0.14) !important;
+      animation: shake .28s ease;
+    }
+    .field-err {
+      font-size: 11px; color: var(--danger);
+      display: none; margin-top: 1px;
+    }
+    .field-err.show { display: block; }
+    .hint-note { font-size: 11px; color: var(--text-mute); line-height: 1.55; }
 
-    fieldset.group {
-      border: 1px solid rgba(37,99,235,0.08);
-      padding: 12px;
+    /* ════ TOOLTIP ════ */
+    .tip-wrap {
+      position: relative;
+      display: inline-flex; align-items: center;
+    }
+    .tip-icon {
+      width: 15px; height: 15px; border-radius: 50%;
+      background: var(--rg-100); color: var(--rg-600);
+      font-size: 10px; font-weight: 800;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: default; flex-shrink: 0; user-select: none;
+    }
+    .tip-box {
+      position: absolute;
+      bottom: calc(100% + 9px);
+      left: 50%; transform: translateX(-50%) scale(.94);
+      background: #2c1a10;
+      color: #f8e8dc;
+      font-size: 12px; font-weight: 400; line-height: 1.65;
+      padding: 9px 14px;
       border-radius: 10px;
-      background: linear-gradient(180deg, rgba(37,99,235,0.03), rgba(255,255,255,0.6));
+      /* ★ 關鍵：寬度固定，讓文字橫向展開再換行 */
+      width: 220px;
+      white-space: normal;
+      word-break: break-all;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .15s, transform .15s;
+      z-index: 200;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.28);
+      text-align: left;
     }
-    fieldset.group legend {
-      font-weight:700;
-      color: #0b2540;
-      padding: 0 8px;
-      font-size:13px;
+    .tip-box::after {
+      content: ''; position: absolute;
+      top: 100%; left: 50%; transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #2c1a10;
     }
-    .group .hint { margin-top:8px; font-size:13px; color:#0b2540; background:rgba(255,255,255,0.95); padding:8px; border-radius:8px; }
-
-    .summary{display:flex;flex-direction:column;gap:12px;}
-    .tile{
-      padding:14px;border-radius:12px;background:linear-gradient(180deg,var(--right-card), #071a2b);
-      border:1px solid rgba(255,255,255,0.04); color:var(--right-text);
-      box-shadow: 0 8px 20px rgba(2,6,23,0.45);
+    .tip-wrap:hover .tip-box,
+    .tip-wrap:focus-within .tip-box {
+      opacity: 1; transform: translateX(-50%) scale(1);
     }
-    .tile h3{margin:0;font-size:13px;color:#9fb7d9}
-    .tile .value{font-size:20px;margin-top:8px;color:#fff;font-weight:700}
-    .value.small{font-size:14px;font-weight:600;color:#cfe6ff}
-    .tile .value.negative{ color: var(--danger); }
 
-    .actions{display:flex;gap:10px;margin-top:12px}
-    button{padding:10px 14px;border-radius:10px;border:0;font-weight:700;cursor:pointer;color:#fff;background:linear-gradient(90deg,var(--accent),#2b6cff)}
-    button.secondary{background:transparent;color:var(--accent);border:1px solid rgba(37,99,235,0.12)}
-
-    footer{margin-top:18px;color:var(--muted);font-size:13px;text-align:right}
-
-    /* help panel 與 tooltip */
-    #helpPanel{background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid rgba(11,26,48,0.04);padding:12px;border-radius:10px;margin-bottom:12px;display:none;}
-    .info-btn{
-      width:28px;height:28px;border-radius:6px;border:1px solid rgba(11,26,48,0.06);
-      background:#fff;color:var(--accent);font-weight:700;cursor:pointer;
-      display:inline-flex;align-items:center;justify-content:center;
+    /* ── Group (分期) ── */
+    .group-wrap {
+      grid-column: 1 / -1;
+      border: 1.5px dashed rgba(172,141,228,0.28);
+      border-radius: var(--r-md); padding: 14px 14px 12px;
+      background: linear-gradient(135deg,
+        rgba(172,141,228,0.07), rgba(228,156,128,0.06));
     }
-    .info-btn:focus{outline:2px solid rgba(37,99,235,0.18);}
-    .tooltip{
-      display:none;
-      position:absolute;
-      z-index:30;
-      right:8px;
-      top:40px;
-      background:#0b2540;color:#fff;padding:8px;border-radius:8px;font-size:13px;
-      box-shadow:0 8px 20px rgba(2,6,23,0.3);
-      max-width:260px;
+    .group-label {
+      font-size: 10.5px; font-weight: 700; letter-spacing: .08em;
+      color: var(--lv-500); text-transform: uppercase;
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 6px;
     }
-    .tooltip.show{display:block;}
+    .group-label::before {
+      content: ''; width: 3px; height: 12px;
+      border-radius: 2px; background: var(--lv-400);
+    }
+    .group-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+    }
+    .group-hint {
+      margin-top: 10px;
+      background: rgba(255,252,250,0.78);
+      border-radius: 8px; padding: 8px 12px;
+      font-size: 11.5px; color: var(--text-mid); line-height: 1.6;
+    }
+    .group-hint strong { color: var(--lv-600); }
 
-    @media (max-width:980px){ .grid{grid-template-columns:1fr;} .two-col{grid-template-columns:1fr;} }
+    /* Divider */
+    .divider {
+      height: 1px; grid-column: 1 / -1; margin: 2px 0;
+      background: linear-gradient(90deg, transparent,
+        rgba(212,121,90,0.18), transparent);
+    }
+
+    /* ── Actions ── */
+    .actions { display: flex; gap: 10px; margin-top: 18px; align-items: center; flex-wrap: wrap; }
+
+    .btn-calc {
+      padding: 11px 30px; border-radius: 11px; border: none;
+      font-family: inherit; font-size: 14px; font-weight: 700;
+      color: #fff; cursor: pointer; letter-spacing: .04em;
+      background: linear-gradient(135deg, var(--rg-300), var(--rg-600));
+      box-shadow: var(--sh-btn);
+      transition: transform .14s, box-shadow .14s;
+      position: relative; overflow: hidden;
+    }
+    .btn-calc:hover { transform: translateY(-2px); box-shadow: 0 8px 26px rgba(180,90,60,0.38); }
+    .btn-calc:active { transform: translateY(0); }
+
+    .btn-clear {
+      padding: 11px 20px; border-radius: 11px;
+      border: 1.5px solid rgba(212,121,90,0.25);
+      font-family: inherit; font-size: 14px; font-weight: 600;
+      color: var(--rg-600); cursor: pointer; background: transparent;
+      transition: background .14s, border-color .14s;
+    }
+    .btn-clear:hover { background: rgba(212,121,90,0.09); border-color: var(--rg-400); }
+
+    /* 清除確認列 */
+    .confirm-bar {
+      display: none; align-items: center; gap: 10px; flex-wrap: wrap;
+      background: rgba(192,64,64,0.07);
+      border: 1px solid rgba(192,64,64,0.18);
+      border-radius: 10px; padding: 9px 14px; margin-top: 10px;
+      font-size: 13px; color: var(--danger);
+      animation: fadeIn .18s ease;
+    }
+    .confirm-bar.show { display: flex; }
+    .confirm-bar button {
+      padding: 4px 14px; border-radius: 7px; border: none;
+      font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .confirm-yes { background: var(--danger); color: #fff; }
+    .confirm-no  { background: rgba(192,64,64,0.12); color: var(--danger); }
+
+    /* ════ SUMMARY (右欄) ════ */
+    .summary {
+      display: flex; flex-direction: column; gap: 10px;
+      animation: slideUp .52s cubic-bezier(.22,.68,0,1.2) .06s both;
+    }
+
+    /* 主角卡 P */
+    .tile-hero {
+      border-radius: var(--r-lg); padding: 22px 22px 18px;
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: var(--sh-tile);
+      position: relative; overflow: hidden;
+      /* 玫瑰金深色漸層 */
+      background: linear-gradient(135deg, #6e3828 0%, #4a2018 100%);
+    }
+    .tile-hero::before {
+      content: ''; position: absolute;
+      width: 220px; height: 220px; border-radius: 50%;
+      top: -80px; right: -60px;
+      background: rgba(255,200,170,0.07);
+    }
+    .tile-hero::after {
+      content: ''; position: absolute;
+      width: 130px; height: 130px; border-radius: 50%;
+      bottom: -50px; left: 10px;
+      background: rgba(212,121,90,0.10);
+    }
+    .tile-hero-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: rgba(255,220,200,0.45);
+      position: relative; z-index: 1;
+    }
+    .tile-hero-sub {
+      font-size: 11px; color: rgba(255,210,190,0.32);
+      margin-top: 2px; position: relative; z-index: 1;
+    }
+    .tile-hero-value {
+      font-family: 'DM Serif Display', serif;
+      font-size: 40px; font-weight: 400;
+      color: #fff; margin-top: 10px; line-height: 1;
+      letter-spacing: .01em;
+      transition: color .3s;
+      position: relative; z-index: 1;
+    }
+    .tile-hero-value.neg { color: #ffaaaa; }
+    .tile-hero-value.pos { color: #f8dcc0; }
+
+    /* 小磚 2×2 */
+    .tiles-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    .tile {
+      border-radius: var(--r-md);
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 4px 16px rgba(60,20,10,0.28);
+      position: relative; overflow: hidden;
+      transition: transform .14s;
+      /* 統一底色：深玫瑰金 */
+      background: linear-gradient(135deg, #5a2e1e 0%, #3e1c10 100%);
+    }
+    .tile:hover { transform: translateY(-2px); }
+    .tile::before {
+      content: ''; position: absolute;
+      width: 80px; height: 80px; border-radius: 50%;
+      top: -28px; right: -18px;
+      background: rgba(255,200,160,0.06);
+    }
+    .tile-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .10em;
+      text-transform: uppercase; color: rgba(255,210,190,0.40);
+    }
+    .tile-value {
+      font-size: 17px; font-weight: 700;
+      color: rgba(255,235,220,0.90); margin-top: 6px;
+      transition: color .25s;
+    }
+    .tile-value.neg { color: #ffaaaa; }
+
+    /* 公式說明卡 */
+    .formula-card {
+      background: rgba(253,238,232,0.60);
+      border: 1px solid rgba(212,121,90,0.16);
+      border-radius: var(--r-md); padding: 12px 14px;
+    }
+    .formula-card-title {
+      font-size: 10px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--rg-500); margin-bottom: 8px;
+    }
+    .formula-row {
+      display: flex; align-items: flex-start; gap: 7px;
+      font-size: 11.5px; color: var(--text-mid); line-height: 1.6;
+      padding: 2px 0;
+    }
+    .formula-key {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+      background: var(--rg-200); color: var(--rg-700);
+      font-size: 10px; font-weight: 800; margin-top: 1px;
+    }
+
+    /* ════ ANIMATIONS ════ */
+    @keyframes slideDown {
+      from { opacity:0; transform:translateY(-18px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes slideUp {
+      from { opacity:0; transform:translateY(22px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+    @keyframes shake {
+      0%,100%{ transform:translateX(0); }
+      25%    { transform:translateX(-5px); }
+      75%    { transform:translateX(5px); }
+    }
+    @keyframes pulseHero {
+      0%,100%{ transform:scale(1); }
+      50%    { transform:scale(1.03); }
+    }
+    .do-pulse { animation: pulseHero .38s ease; }
+
+    /* ════ RESPONSIVE ════ */
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: 1fr; }
+      .tiles-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 580px) {
+      .form-grid  { grid-template-columns: 1fr; }
+      .group-grid { grid-template-columns: 1fr; }
+      .tiles-grid { grid-template-columns: 1fr 1fr; }
+      .tile-hero-value { font-size: 30px; }
+    }
+
+    footer {
+      text-align: right; font-size: 11px;
+      color: var(--text-mute); margin-top: 20px; letter-spacing: .04em;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap" role="main" aria-labelledby="title">
+
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="wrap">
+
+    <!-- ── Header ── -->
     <header>
-      <div class="logo">獎</div>
-      <div>
-        <h1 id="title">獎金計算器</h1>
-        <p style="color:var(--muted);margin-top:6px">※本工具僅供快速估算，實際金額以系統或財務核算為準。</p>
-        <p style="color:var(--muted);margin-top:6px">左側為輸入區，右側為結果摘要與欄位說明（按 i 顯示）。</p>
+      <div class="logo">🎀</div>
+      <div class="header-text">
+        <h1>獎金計算器</h1>
+        <p class="header-sub">
+          ※ 本工具僅供快速估算，實際金額以系統或財務核算為準。<br>
+          填寫左側欄位後，右側結果即時更新。
+        </p>
       </div>
     </header>
 
-    <div class="grid">
+    <div class="layout">
+
+      <!-- ════ 輸入區 ════ -->
       <section class="card" aria-label="輸入欄位">
-        <!-- 表單（左側） -->
-        <form id="calcForm" onsubmit="return false;">
-          <div class="form-grid">
 
-            <!-- 訂單總金額 A -->
-            <div class="field full" aria-labelledby="label-A">
-              <div class="label-row">
-                <label id="label-A"><strong>訂單總金額</strong> A</label>
-                <div style="display:flex;gap:8px;align-items:center">
-                  <span class="badge req">必填</span>
-                  <button type="button" class="info-btn" aria-haspopup="true" aria-controls="tooltip-A" aria-expanded="false" data-tooltip="tooltip-A" tabindex="0">i</button>
-                </div>
-              </div>
-              <input id="A" type="text" inputmode="numeric" placeholder="範例：12000"
-                     data-help-title="訂單總金額 A"
-                     data-help="訂單整體金額。請輸入整數，離開欄位後會自動千分位格式化。"
-                     aria-describedby="A-desc" />
-              <div id="A-desc" class="muted">說明：訂單整體金額。</div>
-              <div id="tooltip-A" class="tooltip" role="tooltip" aria-hidden="true">輸入整數（元），按 Enter 或按「計算」執行。</div>
-            </div>
+        <!-- § 基本資料 -->
+        <div class="sec-title">基本資料</div>
+        <div class="form-grid">
 
-            <!-- 類別與價目表現金價 F -->
-            <div class="two-col">
-              <div class="field" aria-labelledby="label-B">
-                <div class="label-row">
-                  <label id="label-B"><strong>獎金計算類別</strong> B</label>
-                  <div style="display:flex;gap:8px;align-items:center">
-                    <span class="badge req">必填</span>
-                    <button type="button" class="info-btn" aria-haspopup="true" aria-controls="tooltip-B" aria-expanded="false" data-tooltip="tooltip-B" tabindex="0">i</button>
-                  </div>
-                </div>
-                <select id="B" aria-label="獎金計算類別"
-                        data-help-title="獎金計算類別 B"
-                        data-help="選擇計算類別：自開發/公司單/薩爾文/電訪中心等，會影響基本獎金比例。">
-                  <option value="">-- 選擇 --</option>
-                  <option value="1.自開發">1.自開發</option>
-                  <option value="2.公司單">2.公司單</option>
-                  <option value="3.薩爾文(公司單)">3.薩爾文(公司單)</option>
-                  <option value="4.電訪中心(公司單)">4.電訪中心(公司單)</option>
-                  <option value="5.電訪中心-薩爾文(公司單)">5.電訪中心-薩爾文(公司單)</option>
-                </select>
-                <div id="tooltip-B" class="tooltip" role="tooltip" aria-hidden="true">選擇後會影響「基本獎金比例 O」。</div>
-                <div class="muted">說明：選擇對應的獎金計算類別。</div>
-              </div>
-
-              <div class="field" aria-labelledby="label-F">
-                <div class="label-row">
-                  <label id="label-F"><strong>價目表現金價-主產品</strong> F</label>
-                  <div style="display:flex;gap:8px;align-items:center">
-                    <span class="badge req">必填</span>
-                    <button type="button" class="info-btn" aria-haspopup="true" aria-controls="tooltip-F" aria-expanded="false" data-tooltip="tooltip-F" tabindex="0">i</button>
-                  </div>
-                </div>
-                <input id="F" type="text" inputmode="numeric" placeholder="範例：9000"
-                       data-help-title="價目表現金價 F"
-                       data-help="主產品的價目表現金價（員工優惠價）。用於計算折扣與獎金基礎。"/>
-                <div id="tooltip-F" class="tooltip" role="tooltip" aria-hidden="true">輸入整數（元），若為分期會用於計算 E。</div>
-                <div class="muted">說明：主產品的員工優惠價。</div>
-              </div>
-            </div>
-
-            <!-- 分期區塊 -->
-            <fieldset class="group" aria-label="分期區塊">
-              <legend>分期資訊（僅分期時填寫）</legend>
-
-              <div class="two-col" style="margin-bottom:8px">
-                <div class="field" aria-labelledby="label-C">
-                  <label id="label-C">訂單分期總價-主產品 C</label>
-                  <input id="C" type="text" inputmode="numeric" placeholder="範例：10000"
-                         data-help-title="訂單分期總價 C"
-                         data-help="分期訂單的總價（主產品）。若為分期請填寫，系統會用 C/D 與 F 計算 E。"/>
-                </div>
-
-                <div class="field" aria-labelledby="label-D">
-                  <label id="label-D">價目表分期總價-主產品 D</label>
-                  <input id="D" type="text" inputmode="numeric" placeholder="範例：12000"
-                         data-help-title="價目表分期總價 D"
-                         data-help="價目表上分期的總價（主產品），用於計算折扣比例。"/>
-                </div>
-              </div>
-
-              <div class="field" aria-labelledby="label-E">
-                <label id="label-E">折扣後對應的現金價-主產品 E</label>
-                <input id="E" type="text" readonly placeholder="在 C 與 D 都有值時計算"
-                       data-help-title="折扣後現金價 E"
-                       data-help="系統自動計算：E = (C / D) × F。若 C/D/F 任一缺失則不顯示。"/>
-              </div>
-
-              <div class="hint">提示：若訂單為分期，請填寫 C 與 D；系統會自動以 <strong>E = (C / D) × F</strong> 計算折扣後現金價。</div>
-            </fieldset>
-
-            <!-- 其他欄位 -->
-            <div class="two-col">
-              <div class="field" aria-labelledby="label-G">
-                <label id="label-G">加購非主產品的硬體配件及服務 G</label>
-                <input id="G" type="text" inputmode="numeric" placeholder="範例：500"
-                       data-help-title="加購配件與服務 G"
-                       data-help="加購的非主產品硬體或服務金額，會計入總合計 L。"/>
-              </div>
-
-              <div class="field" aria-labelledby="label-K">
-                <label id="label-K">溢收可抵扣贈品金額 上限 K</label>
-                <input id="K" type="text" inputmode="numeric" placeholder="範例：100"
-                       data-help-title="溢收可抵扣贈品上限 K"
-                       data-help="可抵扣贈品的上限金額，若無則留空。"/>
-              </div>
-            </div>
-
-            <div class="two-col">
-              <div class="field" aria-labelledby="label-H">
-                <label id="label-H" style="color:#b91c1c">加購非主產品不列入計算 H</label>
-                <input id="H" type="text" inputmode="numeric" placeholder="範例：-200"
-                       data-help-title="不列入計算 H（負值）"
-                       data-help="此欄允許負值，表示折讓或回扣。若輸入正值會自動轉為負值。"/>
-                <div class="muted">可為負值；若輸入正值會自動轉為負值。</div>
-              </div>
-
-              <div class="field" aria-labelledby="label-I">
-                <label id="label-I" style="color:#b91c1c">扣除贈送 硬體配件及服務 I</label>
-                <input id="I" type="text" inputmode="numeric" placeholder="範例：-150"
-                       data-help-title="扣除贈送 I（負值）"
-                       data-help="贈品扣除金額，允許負值。若輸入正值會自動轉為負值。"/>
-                <div class="muted">贈品扣除金額；若輸入正值會自動轉為負值。</div>
-              </div>
-            </div>
-
-            <div class="field">
-              <label><strong>扣除優惠折扣 J</strong> — 系統計算</label>
-              <input id="J" type="text" readonly placeholder="系統自動計算"
-                     data-help-title="扣除優惠折扣 J"
-                     data-help="系統依分期或整單邏輯計算的折扣差額（系統自動填入）。" />
-            </div>
-
-            <div class="field full">
-              <label class="muted">輸入完畢後按「計算」或在最後一格按 Enter。</label>
-            </div>
-
-            <div class="actions">
-              <button id="calcBtn" type="button">計算</button>
-              <button id="resetBtn" type="button" class="secondary">清除</button>
-            </div>
-
+          <!-- A -->
+          <div class="field full">
+            <label>
+              <span class="lkey">A</span>訂單總金額
+              <span class="badge req">必填</span>
+              <span class="tip-wrap">
+                <span class="tip-icon" tabindex="0">?</span>
+                <span class="tip-box">訂單的整體金額，作為計算基礎，請輸入整數。</span>
+              </span>
+            </label>
+            <input id="A" type="text" inputmode="numeric"
+                   placeholder="例：12,000" data-taborder="1" />
+            <span class="field-err" id="A_err">⚠ 訂單總金額為必填</span>
           </div>
-        </form>
+
+          <!-- F（提前，因為 E 依賴 F） -->
+          <div class="field">
+            <label>
+              <span class="lkey">F</span>主產品員工優惠價
+              <span class="badge req">必填</span>
+              <span class="tip-wrap">
+                <span class="tip-icon" tabindex="0">?</span>
+                <span class="tip-box">萬試通產品價目表上主產品的員工優惠價，用於計算 E 與折扣 J。</span>
+              </span>
+            </label>
+            <input id="F" type="text" inputmode="numeric"
+                   placeholder="例：9,000" data-taborder="2" />
+            <span class="field-err" id="F_err">⚠ 員工優惠價為必填</span>
+          </div>
+
+          <!-- B -->
+          <div class="field">
+            <label>
+              <span class="lkey">B</span>獎金計算類別
+              <span class="badge req">必填</span>
+              <span class="tip-wrap">
+                <span class="tip-icon" tabindex="0">?</span>
+                <span class="tip-box">決定基本獎金比例 O：自開發 11%、公司單/薩爾文 5%、電訪中心系列 8%。</span>
+              </span>
+            </label>
+            <select id="B" data-taborder="3">
+              <option value="">— 請選擇 —</option>
+              <option value="1.自開發">1. 自開發（11%）</option>
+              <option value="2.公司單">2. 公司單（5%）</option>
+              <option value="3.薩爾文(公司單)">3. 薩爾文・公司單（5%）</option>
+              <option value="4.電訪中心(公司單)">4. 電訪中心・公司單（8%）</option>
+              <option value="5.電訪中心-薩爾文(公司單)">5. 電訪中心・薩爾文・公司單（8%）</option>
+            </select>
+            <span class="field-err" id="B_err">⚠ 請選擇獎金計算類別</span>
+          </div>
+
+        </div>
+
+        <!-- § 分期區塊 -->
+        <div class="form-grid">
+          <div class="group-wrap full">
+            <div class="group-label">分期訂單（僅分期時填寫）</div>
+            <div class="group-grid">
+              <div class="field">
+                <label>
+                  <span class="lkey">C</span>訂單主產品分期總額
+                  <span class="badge opt">選填</span>
+                </label>
+                <input id="C" type="text" inputmode="numeric"
+                       placeholder="例：10,000" data-taborder="4" />
+              </div>
+              <div class="field">
+                <label>
+                  <span class="lkey">D</span>萬試通分期總價
+                  <span class="badge opt">選填</span>
+                </label>
+                <input id="D" type="text" inputmode="numeric"
+                       placeholder="例：12,000" data-taborder="5" />
+              </div>
+              <div class="field">
+                <label>
+                  <span class="lkey">E</span>折扣後現金價
+                  <span class="badge sys">自動</span>
+                  <span class="tip-wrap">
+                    <span class="tip-icon" tabindex="0">?</span>
+                    <span class="tip-box">公式：E = (C ÷ D) × F。C、D、F 都有值時自動計算，無需手動輸入。</span>
+                  </span>
+                </label>
+                <input id="E" type="text" readonly
+                       placeholder="C、D、F 有值時自動帶入" />
+              </div>
+            </div>
+            <div class="group-hint">
+              📌 若訂單為<strong>分期</strong>，請填寫 C 與 D；
+              系統自動以 <strong>E = (C ÷ D) × F</strong> 計算折扣後現金價。
+            </div>
+          </div>
+        </div>
+
+        <!-- § 加減項 -->
+        <div class="sec-title" style="margin-top:4px">加減項目</div>
+        <div class="form-grid">
+
+          <div class="field">
+            <label>
+              <span class="lkey">G</span>加購硬體配件及服務
+              <span class="badge opt">選填</span>
+              <span class="tip-wrap">
+                <span class="tip-icon" tabindex="0">?</span>
+                <span class="tip-box">非主產品的硬體配件或加購服務金額，請輸入正整數。</span>
+              </span>
+            </label>
+            <input id="G" type="text" inputmode="numeric"
+                   placeholder="例：500" data-taborder="6" />
+          </div>
+
+          <div class="field">
+            <label>
+              <span class="lkey">H</span>加購配件不列入計算
+              <span class="badge opt">負值</span>
+              <span class="tip-wrap">
+                <span class="tip-icon" tabindex="0">?</span>
+                <span class="tip-box">加購配件中不計入獎金的部分，輸入正整數即可，離開欄位後自動轉為負值。</span>
+              </span>
+            </label>
+            <input id="H" type="text" inputmode="numeric"
+                   placeholder="例：200（自動轉負值）" data-taborder="7" />
+          </div>
+
+          <div class="field">
+            <label>
+              <span class="lkey">I</span>扣除贈送硬體配件
+              <span class="badge opt">負值</span>
+              <span class="tip-wrap">
+                <span class="tip-icon" tabindex="0">?</span>
+                <span class="tip-box">贈品扣除金額，輸入正整數即可，離開欄位後自動轉為負值。</span>
+              </span>
+            </label>
+            <input id="I" type="text" inputmode="numeric"
+                   placeholder="例：150（自動轉負值）" data-taborder="8" />
+          </div>
+
+          <div class="field">
+            <label>
+              <span class="lkey">J</span>扣除優惠折扣
+              <span class="badge sys">自動</span>
+              <span class="tip-wrap">
+                <span class="tip-icon" tabindex="0">?</span>
+                <span class="tip-box">系統自動計算。分期時：J = E − F；現金時：J = A − G − F，結果若為正值則視為 0。</span>
+              </span>
+            </label>
+            <input id="J" type="text" readonly placeholder="系統自動計算" />
+          </div>
+
+          <div class="field">
+            <label>
+              <span class="lkey">K</span>溢收可抵扣贈品上限
+              <span class="badge opt">選填</span>
+              <span class="tip-wrap">
+                <span class="tip-icon" tabindex="0">?</span>
+                <span class="tip-box">溢收金額用來抵扣贈品的上限金額，請輸入正整數。</span>
+              </span>
+            </label>
+            <input id="K" type="text" inputmode="numeric"
+                   placeholder="例：100" data-taborder="9" />
+          </div>
+
+        </div>
+
+        <!-- ── 按鈕 ── -->
+        <div class="actions">
+          <button id="calcBtn" class="btn-calc" data-taborder="10">✦ 計算</button>
+          <button id="clearBtn" class="btn-clear" data-taborder="11">清除</button>
+        </div>
+        <div class="confirm-bar" id="confirmBar" role="alert">
+          ⚠ 確定要清除所有資料嗎？
+          <button class="confirm-yes" id="confirmYes">確定清除</button>
+          <button class="confirm-no"  id="confirmNo">取消</button>
+        </div>
+
       </section>
 
-      <!-- 右側：help panel（預設隱藏） + summary -->
-      <aside aria-label="說明與計算結果">
-        <div id="helpPanel" class="card" aria-live="polite" aria-atomic="true" style="display:none;">
-          <h3 style="margin:0 0 8px 0;font-size:13px;color:var(--muted)">欄位說明</h3>
-          <div id="helpTitle" style="font-weight:700;color:var(--left-text)"></div>
-          <div id="helpBody" style="margin-top:6px;color:var(--muted);font-size:13px"></div>
+      <!-- ════ 結果摘要 ════ -->
+      <aside class="summary" aria-label="計算結果" aria-live="polite">
+
+        <!-- 主角 P -->
+        <div class="tile-hero">
+          <div class="tile-hero-label">總業績獎金</div>
+          <div class="tile-hero-sub">P = (L + M) × O</div>
+          <div class="tile-hero-value" id="P_val">—</div>
         </div>
 
-        <div class="summary" aria-label="計算結果">
+        <!-- 小磚 2×2 -->
+        <div class="tiles-grid">
           <div class="tile">
-            <h3>合計 L</h3>
-            <div id="L_val" class="value">—</div>
+            <div class="tile-label">合計 L</div>
+            <div class="tile-value" id="L_val">—</div>
           </div>
-
           <div class="tile">
-            <h3>依折扣比率扣價差 M</h3>
-            <div id="M_val" class="value small">—</div>
+            <div class="tile-label">折扣比率調整 M</div>
+            <div class="tile-value" id="M_val">—</div>
           </div>
-
           <div class="tile">
-            <h3>折數 N</h3>
-            <div id="N_val" class="value small">—</div>
+            <div class="tile-label">折數 N</div>
+            <div class="tile-value" id="N_val">—</div>
           </div>
-
           <div class="tile">
-            <h3>基本獎金比例 O</h3>
-            <div id="O_val" class="value small">—</div>
-          </div>
-
-          <div class="tile">
-            <h3>總業績獎金 P</h3>
-            <div id="P_val" class="value" style="color:#7be0a6">—</div>
+            <div class="tile-label">獎金比例 O</div>
+            <div class="tile-value" id="O_val">—</div>
           </div>
         </div>
+
+        <!-- 公式說明 -->
+        <div class="formula-card">
+          <div class="formula-card-title">公式說明</div>
+          <div class="formula-row"><span class="formula-key">E</span>= (C ÷ D) × F　折扣現金價</div>
+          <div class="formula-row"><span class="formula-key">J</span>= E − F（分期）/ A − G − F（現金），≤ 0</div>
+          <div class="formula-row"><span class="formula-key">L</span>= F + G + H + I + J + K</div>
+          <div class="formula-row"><span class="formula-key">M</span>= 折扣比率調整（L &lt; 0.92F 時啟動）</div>
+          <div class="formula-row"><span class="formula-key">N</span>= L ÷ F</div>
+          <div class="formula-row"><span class="formula-key">P</span>= (L + M) × O</div>
+        </div>
+
       </aside>
     </div>
 
-    <footer>版權 &middot; 公司內部使用</footer>
+    <footer>僅供內部估算使用 &middot; &copy; 公司內部</footer>
   </div>
 
   <script>
+  (() => {
+    'use strict';
+
+    /* ── 工具 ── */
     const $ = id => document.getElementById(id);
 
-    // 只允許開頭一個負號，其他字元移除（保留數字）
-    function sanitizeIntegerInput(str, allowNegative = false) {
-      if (str === null || str === undefined) return '';
-      let s = String(str);
-      s = s.replace(/,/g, '').trim();
-      let neg = false;
-      if (allowNegative && s.startsWith('-')) {
-        neg = true;
-        s = s.slice(1);
+    function parseNum(val, allowNeg = false) {
+      if (val == null) return NaN;
+      let s = String(val).trim().replace(/,/g, '');
+      if (!s || s === '-') return NaN;
+      if (allowNeg) {
+        const neg = s.startsWith('-');
+        s = s.replace(/[^\d]/g, '');
+        return s ? (neg ? -Math.trunc(+s) : Math.trunc(+s)) : NaN;
       }
-      s = s.replace(/\D+/g, '');
-      if (s === '') return '';
-      return (neg ? '-' : '') + s;
+      s = s.replace(/[^\d]/g, '');
+      return s ? Math.trunc(+s) : NaN;
     }
 
-    function removeCommasForInput(str) {
-      if (str === null || str === undefined) return '';
-      return String(str).replace(/,/g, '');
+    function fmt(n) {
+      if (n == null || n === '' || isNaN(+n)) return '';
+      const v = +n, abs = Math.abs(Math.round(v));
+      return (v < 0 ? '-' : '') + abs.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     }
 
-    function parseInteger(value, allowNegative = false) {
-      if (value === null || value === undefined) return NaN;
-      let s = String(value).trim();
-      if (s === '' || s === '-') return NaN;
-      s = s.replace(/,/g, '');
-      if (allowNegative && s.startsWith('-')) {
-        const num = Number(s);
-        return Number.isFinite(num) ? Math.trunc(num) : NaN;
-      } else {
-        s = s.replace(/\D+/g, '');
-        if (s === '') return NaN;
-        const num = Number(s);
-        return Number.isFinite(num) ? Math.trunc(num) : NaN;
-      }
+    const strip = s => String(s || '').replace(/,/g, '');
+
+    function sanitize(s, neg = false) {
+      let r = String(s || '').replace(/[^\d\-]/g, '');
+      const hasNeg = r.startsWith('-');
+      r = r.replace(/-/g, '');
+      return !r ? '' : (neg && hasNeg ? '-' + r : r);
     }
 
-    function formatNumber(n) {
-      if (n === "" || n === null || n === undefined || isNaN(Number(n))) return "";
-      const num = Number(n);
-      const abs = Math.abs(Math.round(num));
-      const formatted = abs.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-      return (num < 0 ? "-" : "") + formatted;
-    }
-
-    function setInputStateClasses(el) {
+    /* ── 輸入狀態 ── */
+    function applyState(el) {
       if (!el) return;
-      const raw = removeCommasForInput(el.value).trim();
-      if (raw !== '') el.classList.add('has-value'); else el.classList.remove('has-value');
-      const neg = raw.startsWith('-');
-      if (neg) el.classList.add('negative'); else el.classList.remove('negative');
+      const v = strip(el.value).trim();
+      el.classList.toggle('has-value', v !== '' && v !== '-');
+      el.classList.toggle('neg-val',   v.startsWith('-'));
     }
 
-    function computeE_num(C, D, F) {
-      if (isNaN(C) || isNaN(D) || D === 0 || isNaN(F)) return NaN;
-      const tmp = (C / D) * F;
-      return isFinite(tmp) ? Math.round(tmp) : NaN;
+    /* ── 必填驗證 ── */
+    function validate() {
+      let ok = true;
+      [['A','A_err'], ['F','F_err'], ['B','B_err']].forEach(([id, errId]) => {
+        const el = $(id), err = $(errId);
+        const empty = el.tagName === 'SELECT' ? el.value === ''
+                                              : strip(el.value).trim() === '';
+        el.classList.toggle('error', empty);
+        if (err) err.classList.toggle('show', empty);
+        if (empty) ok = false;
+      });
+      return ok;
     }
 
-    function computeJ_num(A, C, E_num, F, G) {
+    function clearErr(id, errId) {
+      $(id)?.classList.remove('error');
+      $(errId)?.classList.remove('show');
+    }
+
+    /* ════ 核心計算 ════ */
+    function calcAll() {
+      const A = parseNum($('A').value);
+      const B = $('B').value;
+      const C = parseNum($('C').value);
+      const D = parseNum($('D').value);
+      const F = parseNum($('F').value);
+      const G = parseNum($('G').value);
+      const H = parseNum($('H').value, true);
+      const I = parseNum($('I').value, true);
+      const K = parseNum($('K').value);
+
+      // E
+      let E_val = '';
+      if (!isNaN(C) && !isNaN(D) && D !== 0 && !isNaN(F)) {
+        const t = (C / D) * F;
+        if (isFinite(t)) E_val = Math.round(t);
+      }
+
+      // J
+      let J_val = 0;
+      const E_num = E_val === '' ? NaN : +E_val;
       if (!isNaN(C) && C > 0) {
         if (!isNaN(E_num) && !isNaN(F)) {
-          const diff = E_num - F;
-          return diff > 0 ? 0 : Math.round(diff);
+          J_val = (E_num - F) > 0 ? 0 : (E_num - F);
         } else {
-          const tmp = (isNaN(A) ? 0 : A) - (isNaN(G) ? 0 : G) - (isNaN(F) ? 0 : F);
-          return tmp > 0 ? 0 : Math.round(tmp);
+          const t = (isNaN(A)?0:A) - (isNaN(G)?0:G) - (isNaN(F)?0:F);
+          J_val = t > 0 ? 0 : t;
         }
       } else {
-        const tmp = (isNaN(A) ? 0 : A) - (isNaN(G) ? 0 : G) - (isNaN(F) ? 0 : F);
-        return tmp > 0 ? 0 : Math.round(tmp);
+        const t = (isNaN(A)?0:A) - (isNaN(G)?0:G) - (isNaN(F)?0:F);
+        J_val = t > 0 ? 0 : t;
       }
-    }
 
-    function updateSummaryValue(id, numericValue) {
-      const el = $(id);
-      if (!el) return;
-      if (numericValue === "" || numericValue === null || numericValue === undefined || isNaN(Number(numericValue))) {
-        el.textContent = '—';
-        el.classList.remove('negative');
-      } else {
-        el.textContent = formatNumber(numericValue);
-        if (Number(numericValue) < 0) el.classList.add('negative'); else el.classList.remove('negative');
-      }
-    }
+      // L
+      const L = (isNaN(F)?0:F) + (isNaN(G)?0:G) + (isNaN(H)?0:H)
+              + (isNaN(I)?0:I) + Math.round(J_val) + (isNaN(K)?0:K);
 
-    function calcOnce() {
-      const A = parseInteger($('A').value, false);
-      const B = $('B').value;
-      const C = parseInteger($('C').value, false);
-      const D = parseInteger($('D').value, false);
-      const F = parseInteger($('F').value, false);
-      const G = parseInteger($('G').value, false);
-      const H = parseInteger($('H').value, true);
-      const I = parseInteger($('I').value, true);
-      const K = parseInteger($('K').value, false);
-
-      const E_num = computeE_num(C, D, F);
-      $('E').value = isNaN(E_num) ? '' : formatNumber(E_num);
-
-      const J_num = computeJ_num(A, C, E_num, F, G);
-      $('J').value = isNaN(J_num) ? '' : formatNumber(J_num);
-
-      const L_val = (isNaN(F) ? 0 : F) + (isNaN(G) ? 0 : G) + (isNaN(H) ? 0 : H) + (isNaN(I) ? 0 : I) + (isNaN(J_num) ? 0 : J_num) + (isNaN(K) ? 0 : K);
-
-      let M_val = 0;
+      // M
+      let M = 0;
       if (!isNaN(F)) {
-        if (L_val < F * 0.8) {
-          M_val = -Math.round(((F * 0.92) - L_val) * 2);
-        } else if (L_val < F * 0.92) {
-          M_val = -Math.round((F * 0.92) - L_val);
-        } else {
-          M_val = 0;
-        }
-      } else {
-        M_val = 0;
+        if      (L < F * 0.80) M = -Math.round(((F * 0.92) - L) * 2);
+        else if (L < F * 0.92) M = -Math.round((F * 0.92) - L);
       }
 
-      let N_val = "";
+      // N
+      let N = '';
       if (!isNaN(F) && F !== 0) {
-        const ratio = L_val / F;
-        if (isFinite(ratio)) {
-          if (ratio < 1) {
-            N_val = ratio.toFixed(4).replace(/\.?0+$/, '');
-          } else {
-            N_val = "無打折";
-          }
-        } else {
-          N_val = "";
-        }
-      } else {
-        N_val = "";
+        const r = L / F;
+        N = isFinite(r) ? (r < 1 ? String(Math.round(r * 10000) / 10000) : '無打折') : '';
       }
 
-      let O_val = "";
-      if (B === "1.自開發") O_val = 0.11;
-      else if (B === "2.公司單" || B === "3.薩爾文(公司單)") O_val = 0.05;
-      else if (B === "4.電訪中心(公司單)" || B === "5.電訪中心-薩爾文(公司單)") O_val = 0.08;
-      else O_val = "無";
+      // O
+      let O = null;
+      if      (B === '1.自開發')                                               O = 0.11;
+      else if (B === '2.公司單' || B === '3.薩爾文(公司單)')                      O = 0.05;
+      else if (B === '4.電訪中心(公司單)' || B === '5.電訪中心-薩爾文(公司單)')  O = 0.08;
 
-      let P_val = "";
-      if (typeof O_val === 'number') {
-        const raw = (L_val * O_val) + (M_val * O_val);
-        if (isFinite(raw)) {
-          let rounded;
-          if (raw >= 0) rounded = Math.floor(raw);
-          else rounded = Math.ceil(raw);
-          P_val = rounded;
-        } else {
-          P_val = "";
-        }
-      } else {
-        P_val = "";
+      // P
+      let P = '';
+      if (O !== null) {
+        const raw = (L * O) + (M * O);
+        if (isFinite(raw)) P = raw >= 0 ? Math.floor(raw) : Math.ceil(raw);
       }
 
-      updateSummaryValue('L_val', L_val);
-      updateSummaryValue('M_val', M_val);
-      $('N_val').textContent = (N_val === "" ? "—" : N_val);
-      $('O_val').textContent = (typeof O_val === 'number' ? (O_val * 100).toFixed(2) + '%' : (O_val === "無" ? "無" : "—"));
-      if (P_val === "") {
-        $('P_val').textContent = '—';
-        $('P_val').classList.remove('negative');
-      } else {
-        $('P_val').textContent = formatNumber(P_val);
-        if (Number(P_val) < 0) $('P_val').classList.add('negative'); else $('P_val').classList.remove('negative');
-      }
+      /* ── 更新 DOM ── */
+      $('E').value = E_val === '' ? '' : fmt(E_val);
+      $('J').value = fmt(Math.round(J_val));
+      applyState($('E')); applyState($('J'));
 
-      ['A','C','D','F','G','K','H','I','J','E'].forEach(id => {
-        const el = $(id);
-        if (el) setInputStateClasses(el);
-      });
+      setTile('L_val', L);
+      setTile('M_val', M);
+      $('N_val').textContent = N || '—';
+      $('O_val').textContent = O !== null ? (O * 100).toFixed(2) + '%' : '—';
+
+      const pEl = $('P_val');
+      if (P === '') {
+        pEl.textContent = '—';
+        pEl.className = 'tile-hero-value';
+      } else {
+        pEl.textContent = fmt(P);
+        pEl.className = 'tile-hero-value' + (+P < 0 ? ' neg' : ' pos');
+        pEl.classList.add('do-pulse');
+        setTimeout(() => pEl.classList.remove('do-pulse'), 400);
+      }
     }
 
-    // 取得表單內可聚焦的控制項（依 DOM 順序）
-    function getFocusableControls(form) {
-      if (!form) return [];
-      const selectors = 'input:not([type=hidden]):not([disabled]), select:not([disabled]), button:not([disabled])';
-      return Array.from(form.querySelectorAll(selectors)).filter(el => {
-        return el.offsetParent !== null;
-      });
+    function setTile(id, val) {
+      const el = $(id); if (!el) return;
+      if (val === '' || val == null || isNaN(+val)) {
+        el.textContent = '—'; el.classList.remove('neg');
+      } else {
+        el.textContent = fmt(val);
+        el.classList.toggle('neg', +val < 0);
+      }
     }
 
-    // Enter 鍵：在欄位間跳到下一個可編輯欄位；跳過 tooltip/helpPanel/隱藏元素/readonly/按 i 的按鈕；最後一格觸發計算
-    document.addEventListener('keydown', function(e){
-      const active = document.activeElement;
-      if (!active) return;
-      const tag = active.tagName.toLowerCase();
+    /* ════ Tab 順序表（依 data-taborder 排序） ════ */
+    const TAB_ORDER_IDS = ['A','F','B','C','D','G','H','I','K','calcBtn','clearBtn'];
 
-      if (tag === 'input' || tag === 'select') {
-        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') e.preventDefault();
+    function focusNext(currentId, delta) {
+      const idx = TAB_ORDER_IDS.indexOf(currentId);
+      if (idx === -1) return;
+      let next = idx + delta;
+      if (next < 0) next = TAB_ORDER_IDS.length - 1;
+      if (next >= TAB_ORDER_IDS.length) next = 0;
+      $(TAB_ORDER_IDS[next])?.focus();
+    }
 
-        if (e.key === 'Enter') {
+    /* ════ 鍵盤事件 ════ */
+    document.addEventListener('keydown', e => {
+      const el = document.activeElement;
+      if (!el) return;
+      const id = el.id;
+      const tag = el.tagName.toLowerCase();
+      const isInput  = tag === 'input';
+      const isSelect = tag === 'select';
+      const isBtn    = tag === 'button';
+
+      // Enter → 下一格（輸入框/Select）或觸發按鈕
+      if (e.key === 'Enter') {
+        if (isBtn) return; // 讓按鈕自然觸發
+        if (isInput || isSelect) {
           e.preventDefault();
-
-          const form = active.closest('form') || document.getElementById('calcForm');
-          const controls = getFocusableControls(form);
-          const idx = controls.indexOf(active);
-          if (idx === -1) return;
-
-          // 找下一個可聚焦元素（跳過 readonly、隱藏提示、help panel 內元素、info 按鈕）
-          let next = null;
-          for (let i = idx + 1; i < controls.length; i++) {
-            const cand = controls[i];
-
-            // 跳過 readonly input
-            if (cand.tagName.toLowerCase() === 'input' && cand.hasAttribute('readonly')) continue;
-
-            // 跳過按 i 的按鈕（info 按鈕）
-            if (cand.classList && cand.classList.contains('info-btn')) continue;
-
-            // 跳過明確隱藏或 aria-hidden 的元素（tooltip 等）
-            if (cand.getAttribute && cand.getAttribute('aria-hidden') === 'true') continue;
-
-            // 跳過 id 以 tooltip 開頭的元素
-            if (cand.id && cand.id.toLowerCase().startsWith('tooltip')) continue;
-
-            // 跳過 helpPanel 本身或位於 helpPanel 內的元素
-            if (cand.id === 'helpPanel' || cand.closest('#helpPanel')) continue;
-
-            // 通過檢查，視為下一個可聚焦元素
-            next = cand;
-            break;
+          if (isInput && (id === 'H' || id === 'I')) {
+            // 先觸發 blur 讓負值轉換
+            el.dispatchEvent(new Event('blur'));
           }
-
-          if (next) {
-            next.focus();
-            if (typeof next.select === 'function') {
-              try { next.select(); } catch (err) {}
-            }
-          } else {
-            // 最後一格：觸發計算
-            const calcBtn = document.getElementById('calcBtn');
-            if (calcBtn) calcBtn.click();
-          }
+          focusNext(id, 1);
         }
+        return;
+      }
+
+      // ↓ / → → 下一格（輸入框）
+      if ((e.key === 'ArrowDown' || e.key === 'ArrowRight') && isInput) {
+        e.preventDefault();
+        focusNext(id, 1);
+        return;
+      }
+
+      // ↑ / ← → 上一格（輸入框）
+      if ((e.key === 'ArrowUp' || e.key === 'ArrowLeft') && isInput) {
+        e.preventDefault();
+        focusNext(id, -1);
+        return;
       }
     });
 
-    // 鍵盤與滾輪行為（保留滾輪阻擋）
-    document.addEventListener('wheel', function(e){
-      const active = document.activeElement;
-      if (!active) return;
-      const tag = active.tagName.toLowerCase();
-      if (tag === 'input') e.preventDefault();
+    // 滾輪不改值
+    document.addEventListener('wheel', e => {
+      if ((document.activeElement?.tagName || '').toLowerCase() === 'input')
+        e.preventDefault();
     }, { passive: false });
 
-    // 整數欄位防呆與格式化（A,C,D,F,G,K）
-    const intIds = ['A','C','D','F','G','K'];
-    intIds.forEach(id => {
-      const el = $(id);
-      if (!el) return;
-      el.addEventListener('focus', function(){
-        el.value = removeCommasForInput(el.value);
-        setInputStateClasses(el);
+    /* ════ 正整數欄位 A C D F G K ════ */
+    ['A','C','D','F','G','K'].forEach(id => {
+      const el = $(id); if (!el) return;
+
+      el.addEventListener('focus', () => { el.value = strip(el.value); applyState(el); });
+
+      el.addEventListener('blur', () => {
+        const raw = strip(el.value).trim();
+        if (!raw || raw === '-') el.value = '';
+        else { const n = parseNum(raw); if (!isNaN(n)) el.value = fmt(n); }
+        applyState(el); calcAll();
+        if (id === 'A') clearErr('A','A_err');
+        if (id === 'F') clearErr('F','F_err');
       });
-      el.addEventListener('blur', function(){
-        const raw = removeCommasForInput(el.value).trim();
-        if (raw === '' || raw === '-') {
-          el.value = '';
-        } else {
-          const cleaned = sanitizeIntegerInput(raw, false);
-          const n = parseInteger(cleaned, false);
-          if (!isNaN(n)) el.value = formatNumber(n);
-        }
-        setInputStateClasses(el);
+
+      el.addEventListener('input', () => {
+        const c = sanitize(el.value, false);
+        if (c !== el.value) el.value = c;
+        applyState(el); calcAll();
       });
-      el.addEventListener('input', function(){
-        const before = el.value;
-        const cleaned = sanitizeIntegerInput(before, false);
-        if (cleaned !== before) el.value = cleaned;
-        setInputStateClasses(el);
-      });
-      el.addEventListener('keydown', function(e){
-        const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'];
-        if (allowed.includes(e.key)) return;
-        if ((e.ctrlKey || e.metaKey) && ['a','c','v','x','A','C','V','X'].includes(e.key)) return;
-        if (!/^[0-9]$/.test(e.key)) e.preventDefault();
+
+      el.addEventListener('keydown', e => {
+        if (['Backspace','Delete','Tab','Home','End'].includes(e.key)) return;
+        if ((e.ctrlKey||e.metaKey) && 'acvxACVX'.includes(e.key)) return;
+        // ArrowLeft/Right/Up/Down 交給全域處理
+        if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter'].includes(e.key)) return;
+        if (!/^\d$/.test(e.key)) e.preventDefault();
       });
     });
 
-    // H 與 I 欄位：允許負值（強制為負）
+    /* ════ 負值欄位 H I ════ */
     ['H','I'].forEach(id => {
-      const el = $(id);
-      if (!el) return;
-      el.addEventListener('focus', function(){
-        el.value = removeCommasForInput(el.value);
-        setInputStateClasses(el);
+      const el = $(id); if (!el) return;
+
+      el.addEventListener('focus', () => { el.value = strip(el.value); applyState(el); });
+
+      el.addEventListener('blur', () => {
+        let raw = strip(el.value).trim();
+        if (!raw || raw === '-') { el.value = ''; applyState(el); calcAll(); return; }
+        let c = sanitize(raw, true);
+        if (c && !c.startsWith('-')) c = '-' + c;
+        const n = parseNum(c, true);
+        el.value = isNaN(n) ? '' : fmt(n);
+        applyState(el); calcAll();
       });
-      el.addEventListener('blur', function(){
-        const before = removeCommasForInput(el.value).trim();
-        if (before === '' || before === '-') {
-          el.value = '';
-        } else {
-          let cleaned = sanitizeIntegerInput(before, true);
-          if (cleaned !== '' && !cleaned.startsWith('-')) cleaned = '-' + cleaned;
-          const n = parseInteger(cleaned, true);
-          if (!isNaN(n)) el.value = formatNumber(n);
-        }
-        setInputStateClasses(el);
+
+      el.addEventListener('input', () => {
+        // 只過濾，不強制加負號（blur 時才加，避免游標跳位）
+        let raw = el.value.replace(/[^\d\-]/g, '');
+        raw = (raw.startsWith('-') ? '-' : '') + raw.replace(/-/g, '');
+        if (raw !== el.value) el.value = raw;
+        applyState(el); calcAll();
       });
-      el.addEventListener('input', function(){
-        const before = el.value;
-        let cleaned = sanitizeIntegerInput(before, true);
-        if (cleaned !== '' && !cleaned.startsWith('-')) cleaned = '-' + cleaned;
-        if (cleaned !== before) el.value = cleaned;
-        setInputStateClasses(el);
-      });
-      el.addEventListener('keydown', function(e){
-        const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End','-'];
-        if (allowed.includes(e.key)) return;
-        if ((e.ctrlKey || e.metaKey) && ['a','c','v','x','A','C','V','X'].includes(e.key)) return;
-        if (!/^[0-9]$/.test(e.key)) e.preventDefault();
+
+      el.addEventListener('keydown', e => {
+        if (['Backspace','Delete','Tab','Home','End','-'].includes(e.key)) return;
+        if ((e.ctrlKey||e.metaKey) && 'acvxACVX'.includes(e.key)) return;
+        if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter'].includes(e.key)) return;
+        if (!/^\d$/.test(e.key)) e.preventDefault();
       });
     });
 
-    // 當 C D F 變動時即時計算 E（並格式化）
-    ['C','D','F'].forEach(id => {
-      const el = $(id);
-      if (!el) return;
-      el.addEventListener('input', function(){
-        const C = parseInteger($('C').value, false);
-        const D = parseInteger($('D').value, false);
-        const F = parseInteger($('F').value, false);
-        const eNum = computeE_num(C, D, F);
-        $('E').value = isNaN(eNum) ? '' : formatNumber(eNum);
-        setInputStateClasses($('E'));
-      });
+    /* ════ Select B ════ */
+    $('B').addEventListener('change', () => {
+      clearErr('B','B_err');
+      $('B').classList.toggle('selected', $('B').value !== '');
+      calcAll();
     });
 
-    // 計算按鈕與清除按鈕
-    document.getElementById('calcBtn').addEventListener('click', calcOnce);
-    document.getElementById('resetBtn').addEventListener('click', function(){
-      const ids = ['A','B','C','D','F','G','H','I','J','K','E'];
-      ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        if (el.tagName.toLowerCase() === 'select') el.selectedIndex = 0;
-        else el.value = '';
-        if (el) el.classList.remove('has-value','negative');
-      });
-      ['L_val','M_val','N_val','O_val','P_val'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-          el.textContent = '—';
-          el.classList.remove('negative');
-        }
-      });
-      // 隱藏 help panel
-      const hp = $('helpPanel');
-      if (hp) hp.style.display = 'none';
+    /* ════ 計算按鈕 ════ */
+    $('calcBtn').addEventListener('click', () => {
+      if (validate()) calcAll();
     });
 
-    // 初始化：為已存在值的欄位套用樣式（若從瀏覽器恢復）
-    window.addEventListener('load', function(){
-      ['A','C','D','F','G','K','H','I','E','J'].forEach(id => {
-        const el = $(id);
-        if (el) {
-          const raw = removeCommasForInput(el.value).trim();
-          if (raw !== '' && raw !== '-') {
-            const allowNeg = (id === 'H' || id === 'I');
-            const n = parseInteger(raw, allowNeg);
-            if (!isNaN(n)) el.value = formatNumber(n);
-          }
-          setInputStateClasses(el);
-        }
+    /* ════ 清除（二次確認） ════ */
+    $('clearBtn').addEventListener('click', () => {
+      $('confirmBar').classList.add('show');
+    });
+    $('confirmNo').addEventListener('click', () => {
+      $('confirmBar').classList.remove('show');
+    });
+    $('confirmYes').addEventListener('click', () => {
+      $('confirmBar').classList.remove('show');
+      ['A','C','D','F','G','H','I','K'].forEach(id => {
+        const el = $(id); if (!el) return;
+        el.value = '';
+        el.classList.remove('has-value','neg-val','error');
       });
-      initFieldHelps();
+      $('B').selectedIndex = 0;
+      $('B').classList.remove('error','selected');
+      ['E','J'].forEach(id => { const el=$(id); if(el){ el.value=''; applyState(el); }});
+      ['A_err','F_err','B_err'].forEach(id => $(id)?.classList.remove('show'));
+      ['L_val','M_val','N_val','O_val'].forEach(id => {
+        const el=$(id); if(el){ el.textContent='—'; el.classList.remove('neg'); }
+      });
+      const pEl = $('P_val');
+      if (pEl) { pEl.textContent='—'; pEl.className='tile-hero-value'; }
     });
 
-    // ---------- help panel 與 tooltip 行為（僅由 info 按鈕觸發） ----------
-    function showHelpPanel(title, body) {
-      const panel = $('helpPanel');
-      if (!panel) return;
-      if (title || body) {
-        $('helpTitle').textContent = title || '';
-        $('helpBody').textContent = body || '';
-        panel.style.display = '';
-      } else {
-        panel.style.display = 'none';
-      }
-    }
-
-    function initFieldHelps() {
-      document.querySelectorAll('.info-btn').forEach(btn => {
-        const tid = btn.getAttribute('data-tooltip');
-        const tip = document.getElementById(tid);
-        if (!tip) return;
-
-        function showTipAndPanel() {
-          tip.classList.add('show');
-          tip.setAttribute('aria-hidden','false');
-          btn.setAttribute('aria-expanded','true');
-          const relatedInput = btn.closest('.field').querySelector('[data-help]');
-          if (relatedInput) {
-            const title = relatedInput.getAttribute('data-help-title') || '';
-            const body = relatedInput.getAttribute('data-help') || '';
-            showHelpPanel(title, body);
-          }
-        }
-        function hideTipAndPanel() {
-          tip.classList.remove('show');
-          tip.setAttribute('aria-hidden','true');
-          btn.setAttribute('aria-expanded','false');
-          showHelpPanel('', '');
-        }
-
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const visible = tip.classList.contains('show');
-          if (visible) hideTipAndPanel(); else showTipAndPanel();
-        });
-
-        btn.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); }
-          if (e.key === 'Escape') hideTipAndPanel();
-        });
-
-        document.addEventListener('click', (e) => {
-          if (!btn.contains(e.target) && !tip.contains(e.target)) hideTipAndPanel();
-        });
+    /* ════ 初始化 ════ */
+    window.addEventListener('load', () => {
+      ['A','C','D','F','G','K'].forEach(id => {
+        const el = $(id); if (!el) return;
+        const raw = strip(el.value).trim();
+        if (raw) { const n = parseNum(raw); if (!isNaN(n)) el.value = fmt(n); }
+        applyState(el);
       });
-    }
+      ['H','I','E','J'].forEach(id => applyState($(id)));
+      if ($('B').value) $('B').classList.add('selected');
+    });
+
+  })();
   </script>
 </body>
 </html>
