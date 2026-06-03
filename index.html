@@ -35,21 +35,21 @@
       --gold-300: #f0d898;
       --gold-500: #c8a040;
 
-      /* 文字 */
-      --text-h:    #2c1a10;
-      --text-body: #5a3a28;
-      --text-mid:  #8c6850;
-      --text-mute: #c0a090;
+      /* 文字 — 加深對比，確保清晰可讀 */
+      --text-h:    #1a0e08;
+      --text-body: #2e1a0e;
+      --text-mid:  #6b4a34;
+      --text-mute: #a07858;
 
       /* 系統色 */
       --danger:  #c04040;
       --ok:      #5aaa80;
 
       /* 卡片 */
-      --card-bg: rgba(255,252,250,0.90);
-      --card-bd: rgba(212,121,90,0.14);
-      --inp-bg:  rgba(253,238,232,0.55);
-      --inp-ring:rgba(212,121,90,0.20);
+      --card-bg: #fffaf8;
+      --card-bd: rgba(212,121,90,0.16);
+      --inp-bg:  rgba(253,238,232,0.70);
+      --inp-ring:rgba(212,121,90,0.22);
 
       --r-sm: 8px;
       --r-md: 14px;
@@ -66,7 +66,11 @@
       min-height: 100vh;
       font-family: 'Noto Sans TC', sans-serif;
       font-size: 14px;
+      font-weight: 500;
       color: var(--text-body);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
       /* 背景：玫瑰金漸層 */
       background: linear-gradient(145deg,
         #fce8e0 0%, #fdf0e8 25%,
@@ -127,7 +131,7 @@
       border-radius: var(--r-lg);
       border: 1px solid var(--card-bd);
       box-shadow: var(--sh-card);
-      backdrop-filter: blur(22px);
+      /* backdrop-filter 移除：避免中文字體在毛玻璃層上模糊 */
       padding: 24px;
       animation: slideUp .48s cubic-bezier(.22,.68,0,1.2) both;
     }
@@ -155,7 +159,7 @@
     .field { display: flex; flex-direction: column; gap: 5px; }
 
     label {
-      font-size: 12px; font-weight: 600; color: var(--text-mid);
+      font-size: 12px; font-weight: 700; color: var(--text-mid);
       letter-spacing: .02em;
       display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
     }
@@ -180,11 +184,11 @@
     /* ── Inputs ── */
     input[type="text"], select {
       background: var(--inp-bg);
-      border: 1.5px solid rgba(212,121,90,0.18);
+      border: 1.5px solid rgba(212,121,90,0.20);
       color: var(--text-h);
       padding: 9px 12px;
       border-radius: var(--r-sm);
-      font-size: 14px; font-family: inherit;
+      font-size: 14px; font-weight: 500; font-family: inherit;
       outline: none; width: 100%;
       appearance: none; -webkit-appearance: none;
       transition: border-color .16s, box-shadow .16s, background .16s, transform .12s;
@@ -197,7 +201,7 @@
     input:focus, select:focus {
       border-color: var(--rg-400);
       box-shadow: 0 0 0 3px var(--inp-ring);
-      background: rgba(253,238,232,0.85);
+      background: #fdf0e8;
       transform: translateY(-1px);
       outline: none;
     }
@@ -214,7 +218,7 @@
     input[readonly]:focus { transform: none; box-shadow: none; }
     input.has-value {
       border-color: var(--rg-300);
-      background: rgba(253,238,232,0.80);
+      background: #fdeee8;
     }
     input.neg-val { color: var(--danger) !important; }
 
@@ -297,7 +301,7 @@
     }
     .group-hint {
       margin-top: 10px;
-      background: rgba(255,252,250,0.78);
+      background: #fffaf8;
       border-radius: 8px; padding: 8px 12px;
       font-size: 11.5px; color: var(--text-mid); line-height: 1.6;
     }
@@ -432,8 +436,8 @@
 
     /* 公式說明卡 */
     .formula-card {
-      background: rgba(253,238,232,0.60);
-      border: 1px solid rgba(212,121,90,0.16);
+      background: #fff5f0;
+      border: 1px solid rgba(212,121,90,0.18);
       border-radius: var(--r-md); padding: 12px 14px;
     }
     .formula-card-title {
