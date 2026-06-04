@@ -234,6 +234,36 @@
     .field-err.show { display: block; }
     .hint-note { font-size: 11px; color: var(--text-mute); line-height: 1.55; }
 
+    /* ── 鎖定欄位（條件禁用）── */
+    input.locked {
+      background: #edeae6 !important;
+      color: #b0a898 !important;
+      border-color: #D9D1C7 !important;
+      cursor: not-allowed !important;
+      font-weight: 500 !important;
+      box-shadow: none !important;
+    }
+    input.locked:focus { transform: none !important; }
+
+    /* 鎖定提示條 */
+    .lock-notice {
+      display: none;
+      grid-column: 1 / -1;
+      align-items: flex-start;
+      gap: 8px;
+      background: rgba(192,64,64,0.06);
+      border: 1px solid rgba(192,64,64,0.18);
+      border-radius: 9px;
+      padding: 9px 13px;
+      font-size: 12.5px;
+      color: #8a3030;
+      line-height: 1.6;
+      margin-top: 2px;
+    }
+    .lock-notice.show { display: flex; }
+    .lock-notice-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+
     /* ════ TOOLTIP ════ */
     .tip-wrap {
       position: relative;
@@ -621,7 +651,7 @@
         <div class="sec-title" style="margin-top:4px">加減項目</div>
         <div class="form-grid">
 
-          <div class="field">
+          <div class="field" id="field_G">
             <label>
               <span class="lkey">G</span>加購硬體配件及服務
               <span class="badge opt">選填</span>
@@ -637,14 +667,13 @@
           <div class="field">
             <label>
               <span class="lkey">H</span>加購配件不列入計算
-              <span class="badge opt">負值</span>
+              <span class="badge sys">自動</span>
               <span class="tip-wrap">
                 <span class="tip-icon" tabindex="0">?</span>
-                <span class="tip-box">加購配件中不計入獎金的部分，輸入正整數即可，離開欄位後自動轉為負值。</span>
+                <span class="tip-box">系統自動帶入 H = −G，即加購配件金額全數不列入獎金計算。G 有值時自動填入負值，G 清空時同步清空。</span>
               </span>
             </label>
-            <input id="H" type="text" inputmode="numeric"
-                   placeholder="" data-taborder="7" />
+            <input id="H" type="text" readonly placeholder="G 有值時自動帶入" />
           </div>
 
           <div class="field">
@@ -666,13 +695,13 @@
               <span class="badge sys">自動</span>
               <span class="tip-wrap">
                 <span class="tip-icon" tabindex="0">?</span>
-                <span class="tip-box">系統自動計算。分期時：J = E − F；現金時：J = A − G − F，結果若為正值則視為 0。</span>
+                <span class="tip-box">系統自動計算。分期時：J = E − F；現金時：J = A − G − F，結果若為正值則視為 0。當 A &lt; F 或 E &lt; F（主產品少收）時，G 被鎖定，J 不含 G。</span>
               </span>
             </label>
             <input id="J" type="text" readonly placeholder="" />
           </div>
 
-          <div class="field">
+          <div class="field" id="field_K">
             <label>
               <span class="lkey">K</span>溢收可抵扣贈品上限
               <span class="badge opt">選填</span>
@@ -683,6 +712,12 @@
             </label>
             <input id="K" type="text" inputmode="numeric"
                    placeholder="" data-taborder="9" />
+          </div>
+
+          <!-- 鎖定提示條 -->
+          <div class="lock-notice" id="lockNotice" role="alert">
+            <span class="lock-notice-icon">⚠️</span>
+            <span id="lockNoticeText"></span>
           </div>
 
         </div>
@@ -735,7 +770,7 @@
           <div class="formula-card-title">公式說明</div>
           <div class="formula-row"><span class="formula-key">E</span>= (C ÷ D) × F　折扣現金價</div>
           <div class="formula-row"><span class="formula-key">J</span>= E − F（分期）/ A − G − F（現金），≤ 0</div>
-          <div class="formula-row"><span class="formula-key">L</span>= F + G + H + I + J + K</div>
+          <div class="formula-row"><span class="formula-key">L</span>= F + G + H + I + J + K　｜ H = −G（自動）；A &lt; F 或 E &lt; F 時 G、K 鎖定為 0</div>
           <div class="formula-row"><span class="formula-key">M</span>= 折扣比率調整（L &lt; 0.92F 時啟動）</div>
           <div class="formula-row"><span class="formula-key">N</span>= L ÷ F</div>
           <div class="formula-row"><span class="formula-key">P</span>= (L + M) × O</div>
@@ -809,6 +844,24 @@
       $(errId)?.classList.remove('show');
     }
 
+    /* ════ 鎖定欄位控制 ════ */
+    function setFieldLocked(id, locked) {
+      const el = $(id);
+      if (!el) return;
+      const wasLocked = el.classList.contains('locked');
+      if (locked) {
+        if (!wasLocked) el.value = '';          // 只在剛鎖定時清空，避免重複閃清
+        el.classList.add('locked');
+        el.setAttribute('readonly', 'readonly');
+        el.classList.remove('has-value','neg-val','error');
+        el.setAttribute('tabindex', '-1');      // 從 Tab 順序移除
+      } else {
+        el.classList.remove('locked');
+        el.removeAttribute('readonly');
+        el.setAttribute('tabindex', id === 'G' ? '6' : '9');
+      }
+    }
+
     /* ════ 核心計算 ════ */
     function calcAll() {
       const A = parseNum($('A').value);
@@ -816,10 +869,50 @@
       const C = parseNum($('C').value);
       const D = parseNum($('D').value);
       const F = parseNum($('F').value);
-      const G = parseNum($('G').value);
-      const H = parseNum($('H').value, true);
       const I = parseNum($('I').value, true);
-      const K = parseNum($('K').value);
+
+      /* ── 鎖定判斷（先算 E 供判斷用）──
+         現金訂單：A < F（訂單總金額少於員工優惠價）
+         分期訂單：E < F（折扣後現金價少於員工優惠價）
+         任一成立，G 與 K 鎖定不可填
+      ── */
+      let E_for_lock = NaN;
+      if (!isNaN(C) && !isNaN(D) && D !== 0 && !isNaN(F)) {
+        const t = (C / D) * F;
+        if (isFinite(t)) E_for_lock = Math.round(t);
+      }
+      const isInstalment = !isNaN(C) && C > 0;
+      const lockByA = !isInstalment && !isNaN(A) && !isNaN(F) && A < F;
+      const lockByE = isInstalment  && !isNaN(E_for_lock) && !isNaN(F) && E_for_lock < F;
+      const shouldLock = lockByA || lockByE;
+
+      setFieldLocked('G', shouldLock);
+      setFieldLocked('K', shouldLock);
+
+      // 動態說明鎖定原因
+      const notice = $('lockNotice');
+      const noticeText = $('lockNoticeText');
+      if (notice && noticeText) {
+        notice.classList.toggle('show', shouldLock);
+        if (shouldLock) {
+          noticeText.innerHTML = lockByA
+            ? '訂單總金額（A）小於主產品員工優惠價（F），主產品已有少收情形，因此 <strong>G 加購硬體配件及服務</strong>與 <strong>K 溢收可抵扣贈品上限</strong>無法填寫，已自動鎖定並歸零。'
+            : '折扣後現金價（E）小於主產品員工優惠價（F），分期訂單主產品已有少收情形，因此 <strong>G 加購硬體配件及服務</strong>與 <strong>K 溢收可抵扣贈品上限</strong>無法填寫，已自動鎖定並歸零。';
+        }
+      }
+
+      const G = shouldLock ? NaN : parseNum($('G').value);
+      const K = shouldLock ? NaN : parseNum($('K').value);
+
+      // ── H = −G 自動帶入（系統計算）──
+      // G 有值時 H = -G；G 空或鎖定時 H = 0（不影響 L 計算）
+      const H = (!isNaN(G) && G > 0) ? -G : 0;
+      // 同步更新 H 欄位顯示
+      const hEl = $('H');
+      if (hEl) {
+        hEl.value = (!isNaN(G) && G > 0) ? fmt(-G) : '';
+        applyState(hEl);
+      }
 
       // E
       let E_val = '';
@@ -907,15 +1000,25 @@
     }
 
     /* ════ Tab 順序表（依 data-taborder 排序） ════ */
-    const TAB_ORDER_IDS = ['A','F','B','C','D','G','H','I','K','calcBtn','clearBtn'];
+    const TAB_ORDER_IDS = ['A','F','B','C','D','G','I','K','calcBtn','clearBtn']; // H 已自動，移出 Tab 順序
 
     function focusNext(currentId, delta) {
       const idx = TAB_ORDER_IDS.indexOf(currentId);
       if (idx === -1) return;
       let next = idx + delta;
-      if (next < 0) next = TAB_ORDER_IDS.length - 1;
-      if (next >= TAB_ORDER_IDS.length) next = 0;
-      $(TAB_ORDER_IDS[next])?.focus();
+      let safety = 0;
+      while (safety++ < TAB_ORDER_IDS.length) {
+        if (next < 0) next = TAB_ORDER_IDS.length - 1;
+        if (next >= TAB_ORDER_IDS.length) next = 0;
+        const target = $(TAB_ORDER_IDS[next]);
+        // 跳過鎖定欄位（locked）與 readonly 計算欄位（E、J）
+        if (target && !target.classList.contains('locked')
+                   && !['E','J'].includes(TAB_ORDER_IDS[next])) {
+          target.focus();
+          return;
+        }
+        next += delta;
+      }
     }
 
     /* ════ 鍵盤事件 ════ */
@@ -979,12 +1082,14 @@
       });
 
       el.addEventListener('input', () => {
+        if (el.classList.contains('locked')) return;   // 鎖定中不處理
         const c = sanitize(el.value, false);
         if (c !== el.value) el.value = c;
         applyState(el); calcAll();
       });
 
       el.addEventListener('keydown', e => {
+        if (el.classList.contains('locked')) { e.preventDefault(); return; } // 鎖定中攔截
         if (['Backspace','Delete','Tab','Home','End'].includes(e.key)) return;
         if ((e.ctrlKey||e.metaKey) && 'acvxACVX'.includes(e.key)) return;
         // ArrowLeft/Right/Up/Down 交給全域處理
@@ -993,8 +1098,8 @@
       });
     });
 
-    /* ════ 負值欄位 H I ════ */
-    ['H','I'].forEach(id => {
+    /* ════ 負值欄位 I（H 已改為系統自動 = −G，不需要 listener）════ */
+    ['I'].forEach(id => {
       const el = $(id); if (!el) return;
 
       el.addEventListener('focus', () => { el.value = strip(el.value); applyState(el); });
@@ -1010,7 +1115,6 @@
       });
 
       el.addEventListener('input', () => {
-        // 只過濾，不強制加負號（blur 時才加，避免游標跳位）
         let raw = el.value.replace(/[^\d\-]/g, '');
         raw = (raw.startsWith('-') ? '-' : '') + raw.replace(/-/g, '');
         if (raw !== el.value) el.value = raw;
@@ -1046,14 +1150,29 @@
     });
     $('confirmYes').addEventListener('click', () => {
       $('confirmBar').classList.remove('show');
-      ['A','C','D','F','G','H','I','K'].forEach(id => {
+      // 可編輯欄位：清除值與狀態
+      ['A','C','D','F','G','I','K'].forEach(id => {  // H 由系統控制，另外處理
         const el = $(id); if (!el) return;
         el.value = '';
-        el.classList.remove('has-value','neg-val','error');
+        el.classList.remove('has-value','neg-val','error','locked');
+        el.removeAttribute('readonly');           // 解除鎖定
+        if (id === 'G') el.setAttribute('tabindex','6');
+        if (id === 'K') el.setAttribute('tabindex','9');
       });
+      // 自動計算欄位：只清值，readonly 保留
+      ['E','J'].forEach(id => {
+        const el = $(id); if (!el) return;
+        el.value = '';
+        applyState(el);
+        // 確保 readonly 始終存在
+        el.setAttribute('readonly','readonly');
+      });
+      $('lockNotice')?.classList.remove('show');
       $('B').selectedIndex = 0;
       $('B').classList.remove('error','selected');
-      ['E','J'].forEach(id => { const el=$(id); if(el){ el.value=''; applyState(el); }});
+      // H 系統自動欄位：清空顯示
+      const hElC = $('H'); if (hElC) { hElC.value = ''; applyState(hElC); }
+      // E/J 已在上方清除
       ['A_err','F_err','B_err'].forEach(id => $(id)?.classList.remove('show'));
       ['L_val','M_val','N_val','O_val'].forEach(id => {
         const el=$(id); if(el){ el.textContent='—'; el.classList.remove('neg'); }
